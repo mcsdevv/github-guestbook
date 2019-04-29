@@ -134,6 +134,7 @@ HomePage.getInitialProps = async ctx => {
   const baseURL = `${protocol}//${host}`;
   const guestbookRequest = await fetch(`${baseURL}/api/guestbook`);
   const { guestbook } = await guestbookRequest.json();
+  const existing = !!guestbook.find(s => s.id === parseInt(id));
   if (query.token === 'logout') {
     destroyCookie(ctx, 'token');
     destroyCookie(ctx, 'id');
@@ -148,15 +149,14 @@ HomePage.getInitialProps = async ctx => {
       maxAge: 30 * 24 * 60 * 60,
       path: '/'
     });
-  }
-  if (query.token && query.token !== 'logout') {
-    await setCookie(ctx, 'token', query.token, {
-      maxAge: 30 * 24 * 60 * 60,
-      path: '/'
-    });
+    if (query.token && query.token !== 'logout') {
+      await setCookie(ctx, 'token', query.token, {
+        maxAge: 30 * 24 * 60 * 60,
+        path: '/'
+      });
+    }
   }
   const { id, login, token } = await parseCookies(ctx);
-  const existing = !!guestbook.find(s => s.id === parseInt(id));
   return { baseURL, existing, guestbook, id, login, token };
 };
 
