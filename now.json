@@ -12,8 +12,8 @@
       "dest": "api/auth/github.js"
     },
     {
-      "src": "/api/auth/sign",
-      "dest": "api/auth/sign.js"
+      "src": "/api/guestbook/sign",
+      "dest": "api/guestbook/sign.js"
     }
   ],
   "env": {

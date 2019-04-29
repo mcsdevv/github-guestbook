@@ -1,10 +1,16 @@
-const db = require("../../lib/db");
-const { json } = require("micro");
+const db = require('../../lib/db');
+const escape = require('sql-template-strings');
+const { json } = require('micro');
 
 module.exports = async (req, res) => {
-  const { comment, id, name, picture } = await json(req);
+  const { comment, id } = await json(req);
   await db.query(
-    `INSERT INTO guestbook VALUES (${id},'${name}','${comment}','${picture}')`
+    escape`UPDATE guestbook
+       SET comment = ${comment}
+       WHERE id = ${id}`
   );
+  res.writeHead(302, {
+    Location: '/?provider=github'
+  });
   res.end();
 };

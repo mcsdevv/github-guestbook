@@ -3,14 +3,23 @@ import { parseCookies, setCookie, destroyCookie } from 'nookies';
 import Head from 'next/head';
 import Link from 'next/link';
 
-function HomePage({ baseURL, guestbook, id, login, token }) {
-  const handleSubmit = e => {
+function HomePage({ baseURL, existing, guestbook, id, login, token }) {
+  const handleSubmit = async e => {
     e.preventDefault();
+    const comment = e.target.comment.value;
+    fetch(`${baseURL}/api/guestbook/sign`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        comment,
+        id
+      })
+    });
+    window.location = '/';
   };
   return (
     <>
       <Head>
-        <title>Serverless GitHub Guestbook</title>
+        <title>GitHub Guestbook</title>
         <link
           rel="stylesheet"
           href="https://css.zeit.sh/v1.css"
@@ -33,29 +42,38 @@ function HomePage({ baseURL, guestbook, id, login, token }) {
       </header>
       {token && (
         <>
-          <h2>Hello, {login}, want to sign the guestbook?</h2>
+          <h3>
+            Hello, {login},{' '}
+            {existing
+              ? 'want to update your signature?'
+              : 'want to sign the guestbook?'}
+          </h3>
           <form onSubmit={handleSubmit}>
             <input id="comment" name="comment" />
             <button type="submit">Sign</button>
           </form>
         </>
       )}
-      <ul>
-        {guestbook.length >= 1 &&
-          guestbook.map(g => (
-            <li>
-              <Link href={`https://github.com/${g.name}`}>
-                <a>
-                  <img src={g.picture} />
-                  <div className="description">
-                    <h3>{g.name}</h3>
-                    <p>{g.comment}</p>
-                  </div>
-                </a>
-              </Link>
-            </li>
-          ))}
-      </ul>
+      {guestbook.length >= 1 && (
+        <>
+          <h2>Signatures</h2>
+          <ul>
+            {guestbook.map(g => (
+              <li>
+                <Link href={`https://github.com/${g.url}`}>
+                  <a className="comment">
+                    <img src={g.avatar} />
+                    <div className="description">
+                      <h3>{g.login}</h3>
+                      <p>{g.comment}</p>
+                    </div>
+                  </a>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       <style jsx>{`
         header {
           align-items: center;
@@ -68,11 +86,27 @@ function HomePage({ baseURL, guestbook, id, login, token }) {
         ul li::before {
           content: '';
         }
+        li {
+          border-radius: 5px;
+          box-shadow: rgba(0, 0, 0, 0.1) 0px 6px 12px;
+          display: flex;
+          height: 150px;
+          margin-bttom: 24px;
+        }
+        a:hover {
+          border-bottom: none;
+        }
         img {
+          border-bottom-left-radius: 5px;
+          border-top-left-radius: 5px;
           height: 100%;
+          width: 150px;
         }
         h3 {
           margin: 0;
+        }
+        .comment {
+          display: flex;
         }
         .description {
           color: #333;
@@ -98,6 +132,8 @@ HomePage.getInitialProps = async ctx => {
     : location.protocol;
   const host = req ? req.headers['x-forwarded-host'] : location.host;
   const baseURL = `${protocol}//${host}`;
+  const guestbookRequest = await fetch(`${baseURL}/api/guestbook`);
+  const { guestbook } = await guestbookRequest.json();
   if (query.token === 'logout') {
     destroyCookie(ctx, 'token');
     destroyCookie(ctx, 'id');
@@ -120,8 +156,8 @@ HomePage.getInitialProps = async ctx => {
     });
   }
   const { id, login, token } = await parseCookies(ctx);
-  const guestbook = [];
-  return { baseURL, guestbook, id, login, token };
+  const existing = !!guestbook.find(s => s.id === parseInt(id));
+  return { baseURL, existing, guestbook, id, login, token };
 };
 
 export default HomePage;
