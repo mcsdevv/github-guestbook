@@ -7,7 +7,7 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
   const handleSubmit = async e => {
     e.preventDefault();
     const comment = e.target.comment.value;
-    fetch(`${baseURL}/api/guestbook/sign`, {
+    await fetch(`${baseURL}/api/guestbook/sign`, {
       method: 'PATCH',
       body: JSON.stringify({
         comment,
