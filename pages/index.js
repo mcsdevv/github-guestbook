@@ -16,6 +16,9 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
     });
     window.location = '/';
   };
+  const handleRemove = async e => {
+    console.log(existing.id);
+  };
   return (
     <>
       <Head>
@@ -44,7 +47,7 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
         <>
           <h3>
             Hello, {login},{' '}
-            {existing
+            {!!existing
               ? 'want to update your signature?'
               : 'want to sign the guestbook?'}
           </h3>
@@ -63,12 +66,19 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
                 <Link href={g.url}>
                   <a className="comment">
                     <img src={g.avatar} />
-                    <div className="description">
-                      <h4>{g.login}</h4>
-                      <p>{g.comment}</p>
-                    </div>
                   </a>
                 </Link>
+                <div className="description">
+                  <div className="text">
+                    <h4>{g.login}</h4>
+                    <p>{g.comment}</p>
+                  </div>
+                  {existing.id == g.id && (
+                    <button className="remove" onClick={handleRemove}>
+                      Remove
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -89,7 +99,8 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
         li {
           border-radius: 5px;
           box-shadow: rgba(0, 0, 0, 0.1) 0px 6px 12px;
-          display: flex;
+          display: grid;
+          grid-template-columns: 150px 1fr;
           height: 150px;
           margin-bottom: 24px;
         }
@@ -103,17 +114,10 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           border-bottom-left-radius: 5px;
           border-top-left-radius: 5px;
           height: 100%;
-          width: 150px;
+          width: 100%;
         }
         h4 {
           margin: 0;
-        }
-        .comment {
-          display: flex;
-        }
-        .description {
-          color: #333;
-          padding: 1em;
         }
         form {
           display: flex;
@@ -122,6 +126,21 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
         input {
           flex-grow: 100;
           margin-right: 20px;
+        }
+        .comment {
+          width: 150px;
+        }
+        .description {
+          box-sizing: border-box;
+          color: #333;
+          display: flex;
+          justify-content: space-between;
+          padding: 1em;
+        }
+        .remove {
+          align-self: center;
+          height: 37px;
+          min-width: fit-content;
         }
       `}</style>
     </>
@@ -137,7 +156,7 @@ HomePage.getInitialProps = async ctx => {
   const baseURL = `${protocol}//${host}`;
   const guestbookRequest = await fetch(`${baseURL}/api/guestbook`);
   const { guestbook } = await guestbookRequest.json();
-  const existing = !!guestbook.find(
+  const existing = guestbook.find(
     s => s.id === parseInt(query.id || parseCookies(ctx).id)
   );
   if (query.token === 'logout') {
