@@ -149,12 +149,12 @@ HomePage.getInitialProps = async ctx => {
       maxAge: 30 * 24 * 60 * 60,
       path: '/'
     });
-    if (query.token && query.token !== 'logout') {
-      await setCookie(ctx, 'token', query.token, {
-        maxAge: 30 * 24 * 60 * 60,
-        path: '/'
-      });
-    }
+  }
+  if (query.token && query.token !== 'logout') {
+    await setCookie(ctx, 'token', query.token, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: '/'
+    });
   }
   const { id, login, token } = await parseCookies(ctx);
   return { baseURL, existing, guestbook, id, login, token };
