@@ -60,11 +60,11 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           <ul>
             {guestbook.map(g => (
               <li>
-                <Link href={`https://github.com/${g.url}`}>
+                <Link href={g.url}>
                   <a className="comment">
                     <img src={g.avatar} />
                     <div className="description">
-                      <h3>{g.login}</h3>
+                      <h4>{g.login}</h4>
                       <p>{g.comment}</p>
                     </div>
                   </a>
@@ -91,7 +91,10 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           box-shadow: rgba(0, 0, 0, 0.1) 0px 6px 12px;
           display: flex;
           height: 150px;
-          margin-bttom: 24px;
+          margin-bottom: 24px;
+        }
+        a {
+          border-bottom: none;
         }
         a:hover {
           border-bottom: none;
@@ -102,7 +105,7 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           height: 100%;
           width: 150px;
         }
-        h3 {
+        h4 {
           margin: 0;
         }
         .comment {
