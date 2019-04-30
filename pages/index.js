@@ -73,15 +73,20 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
                   </a>
                 </Link>
                 <div className="description">
-                  <div className="text">
+                  <div className="row">
                     <h4>{g.login}</h4>
-                    <p>{g.comment}</p>
+                    <div className="time">
+                      {new Date(g.updated).toTimeString()}
+                    </div>
                   </div>
-                  {id == g.id && (
-                    <button className="delete" onClick={handleDelete}>
-                      Delete
-                    </button>
-                  )}
+                  <div className="row">
+                    <p>{g.comment}</p>
+                    {id == g.id && (
+                      <button className="delete" onClick={handleDelete}>
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               </li>
             ))}
@@ -138,13 +143,21 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           box-sizing: border-box;
           color: #333;
           display: flex;
+          flex-direction: column;
           justify-content: space-between;
           padding: 1em;
+        }
+        .row {
+          display: flex;
+          height: fit-content;
+          justify-content: space-between;
+          width: 100%;
         }
         .delete {
           align-self: center;
           height: 37px;
           min-width: fit-content;
+          max-width: fit-content;
         }
       `}</style>
     </>

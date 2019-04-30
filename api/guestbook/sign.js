@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
   } else {
     const sign = await db.query(
       escape`UPDATE guestbook
-       SET comment = ${comment}
+       SET comment = ${comment}, updated = ${Date.now()}
        WHERE id = ${id}`
     );
     console.log('SIGN', sign);
