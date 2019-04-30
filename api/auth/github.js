@@ -23,15 +23,14 @@ module.exports = async (req, res) => {
     },
     json: true
   });
-
   const existing = await db.query(escape`
     SELECT * FROM guestbook WHERE id = ${id}
 `);
   if (!existing.length) {
     await db.query(escape`
       INSERT INTO
-      guestbook (id, avatar, url, login, comment)
-      VALUES (${id}, ${avatar_url}, ${html_url}, ${login}, null)
+      guestbook (id, avatar, url, login, comment, updated)
+      VALUES (${id}, ${avatar_url}, ${html_url}, ${login}, null, ${Date.now()})
     `);
   }
   res.writeHead(301, {

@@ -11,13 +11,17 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
       method: 'PATCH',
       body: JSON.stringify({
         comment,
-        id
+        id,
+        token
       })
     });
     window.location = '/';
   };
-  const handleRemove = async e => {
-    console.log(existing.id);
+  const handleDelete = async () => {
+    await fetch(`${baseURL}/api/guestbook/delete?id=${id}`, {
+      method: 'DELETE'
+    });
+    window.location = '/';
   };
   return (
     <>
@@ -73,9 +77,9 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
                     <h4>{g.login}</h4>
                     <p>{g.comment}</p>
                   </div>
-                  {existing.id == g.id && (
-                    <button className="remove" onClick={handleRemove}>
-                      Remove
+                  {id == g.id && (
+                    <button className="delete" onClick={handleDelete}>
+                      Delete
                     </button>
                   )}
                 </div>
@@ -137,7 +141,7 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           justify-content: space-between;
           padding: 1em;
         }
-        .remove {
+        .delete {
           align-self: center;
           height: 37px;
           min-width: fit-content;
