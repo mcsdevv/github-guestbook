@@ -3,7 +3,58 @@ import { parseCookies, setCookie, destroyCookie } from 'nookies';
 import Head from 'next/head';
 import Link from 'next/link';
 
-function HomePage({ baseURL, existing, guestbook, id, login, token }) {
+HomePage.getInitialProps = async ctx => {
+  const { req, query } = ctx;
+  const protocol = req
+    ? `${req.headers['x-forwarded-proto']}:`
+    : location.protocol;
+  const host = req ? req.headers['x-forwarded-host'] : location.host;
+  const baseURL = `${protocol}//${host}`;
+  const guestbookRequest = await fetch(
+    `${baseURL}/api/guestbook?page=${query.page || 1}&limit=${query.limit || 5}`
+  );
+  const { guestbook, page, pageCount } = await guestbookRequest.json();
+  const existing = guestbook.find(
+    s => s.id === parseInt(query.id || parseCookies(ctx).id)
+  );
+  if (query.token === 'logout') {
+    destroyCookie(ctx, 'token');
+    destroyCookie(ctx, 'id');
+    destroyCookie(ctx, 'name');
+    return { baseURL, existing, guestbook };
+  }
+  if (query.id) {
+    await setCookie(ctx, 'id', query.id, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: '/'
+    });
+    await setCookie(ctx, 'login', query.login, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: '/'
+    });
+    if (query.token && query.token !== 'logout') {
+      await setCookie(ctx, 'token', query.token, {
+        maxAge: 30 * 24 * 60 * 60,
+        path: '/'
+      });
+    }
+    const { id, login, token } = query;
+    return { baseURL, existing, guestbook, id, login, page, pageCount, token };
+  }
+  const { id, login, token } = await parseCookies(ctx);
+  return { baseURL, existing, guestbook, id, login, page, pageCount, token };
+};
+
+function HomePage({
+  baseURL,
+  existing,
+  guestbook,
+  id,
+  login,
+  page,
+  pageCount,
+  token
+}) {
   const handleSubmit = async e => {
     e.preventDefault();
     const comment = e.target.comment.value;
@@ -93,6 +144,18 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           </ul>
         </>
       )}
+      <nav>
+        {page > 1 && (
+          <Link prefetch href={`/?page=${page - 1}&limit=5`}>
+            <a>Previous</a>
+          </Link>
+        )}
+        {page < pageCount && (
+          <Link prefetch href={`/?page=${page + 1}&limit=5`}>
+            <a className="next">Next</a>
+          </Link>
+        )}
+      </nav>
       <style jsx>{`
         header {
           align-items: center;
@@ -136,6 +199,10 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           flex-grow: 100;
           margin-right: 20px;
         }
+        nav {
+          display: flex;
+          justify-content: space-between;
+        }
         .comment {
           width: 150px;
         }
@@ -159,49 +226,12 @@ function HomePage({ baseURL, existing, guestbook, id, login, token }) {
           min-width: fit-content;
           max-width: fit-content;
         }
+        .next {
+          margin-left: auto;
+        }
       `}</style>
     </>
   );
 }
-
-HomePage.getInitialProps = async ctx => {
-  const { req, query } = ctx;
-  const protocol = req
-    ? `${req.headers['x-forwarded-proto']}:`
-    : location.protocol;
-  const host = req ? req.headers['x-forwarded-host'] : location.host;
-  const baseURL = `${protocol}//${host}`;
-  const guestbookRequest = await fetch(`${baseURL}/api/guestbook`);
-  const { guestbook } = await guestbookRequest.json();
-  const existing = guestbook.find(
-    s => s.id === parseInt(query.id || parseCookies(ctx).id)
-  );
-  if (query.token === 'logout') {
-    destroyCookie(ctx, 'token');
-    destroyCookie(ctx, 'id');
-    destroyCookie(ctx, 'name');
-    return { baseURL, existing, guestbook };
-  }
-  if (query.id) {
-    await setCookie(ctx, 'id', query.id, {
-      maxAge: 30 * 24 * 60 * 60,
-      path: '/'
-    });
-    await setCookie(ctx, 'login', query.login, {
-      maxAge: 30 * 24 * 60 * 60,
-      path: '/'
-    });
-    if (query.token && query.token !== 'logout') {
-      await setCookie(ctx, 'token', query.token, {
-        maxAge: 30 * 24 * 60 * 60,
-        path: '/'
-      });
-    }
-    const { id, login, token } = query;
-    return { baseURL, existing, guestbook, id, login, token };
-  }
-  const { id, login, token } = await parseCookies(ctx);
-  return { baseURL, existing, guestbook, id, login, token };
-};
 
 export default HomePage;
