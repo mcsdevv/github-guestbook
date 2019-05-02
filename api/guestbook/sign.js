@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   SELECT * FROM guestbook WHERE id = ${id}
   `);
   if (!existing.length) {
-    const { avatar_url, login, html_url } = await request({
+    const { avatar_url, login } = await request({
       uri: 'https://api.github.com/user',
       headers: {
         Authorization: `bearer ${token}`,
@@ -19,8 +19,8 @@ module.exports = async (req, res) => {
     });
     await db.query(escape`
     INSERT INTO
-    guestbook (id, avatar, url, login, comment, updated)
-    VALUES (${id}, ${avatar_url}, ${html_url}, ${login}, ${comment}, ${Date.now()})
+    guestbook (id, avatar, login, comment, updated)
+    VALUES (${id}, ${avatar_url}, ${login}, ${comment}, ${Date.now()})
   `);
   } else {
     const sign = await db.query(

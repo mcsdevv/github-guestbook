@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
     },
     json: true
   });
-  const { id, avatar_url, login, html_url } = await request({
+  const { id, avatar_url, login } = await request({
     uri: 'https://api.github.com/user',
     headers: {
       Authorization: `bearer ${access_token}`,
@@ -29,8 +29,8 @@ module.exports = async (req, res) => {
   if (!existing.length) {
     await db.query(escape`
       INSERT INTO
-      guestbook (id, avatar, url, login, comment, updated)
-      VALUES (${id}, ${avatar_url}, ${html_url}, ${login}, null, ${Date.now()})
+      guestbook (id, avatar, login, comment, updated)
+      VALUES (${id}, ${avatar_url}, ${login}, null, ${Date.now()})
     `);
   }
   res.writeHead(301, {

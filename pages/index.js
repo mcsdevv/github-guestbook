@@ -118,7 +118,7 @@ function HomePage({
           <ul>
             {guestbook.map(g => (
               <li>
-                <Link href={g.url}>
+                <Link href={`https://github.com/${g.login}`}>
                   <a className="comment">
                     <img src={g.avatar} />
                   </a>
