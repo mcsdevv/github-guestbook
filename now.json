@@ -18,6 +18,10 @@
     {
       "src": "/api/guestbook/delete",
       "dest": "api/guestbook/delete.js"
+    },
+    {
+      "src": "/api/guestbook/add",
+      "dest": "api/guestbook/add.js"
     }
   ],
   "env": {

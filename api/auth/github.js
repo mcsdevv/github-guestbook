@@ -1,7 +1,5 @@
 const url = require('url');
 const request = require('request-promise');
-const db = require('../../lib/db');
-const escape = require('sql-template-strings');
 
 module.exports = async (req, res) => {
   const { query } = url.parse(req.url, true);
@@ -15,24 +13,13 @@ module.exports = async (req, res) => {
     },
     json: true
   });
-  const { id, avatar_url, login } = await request({
-    uri: 'https://api.github.com/user',
-    headers: {
-      Authorization: `bearer ${access_token}`,
-      'User-Agent': 'Serverless Guestbook'
-    },
-    json: true
+  console.log(
+    'SICKKKKKK',
+    `http://${req.headers.host}/guestbook/add?token=${access_token}`
+  );
+  const { id, login } = await request({
+    uri: `http://${req.headers.host}/guestbook/add?token=${access_token}`
   });
-  const existing = await db.query(escape`
-    SELECT * FROM guestbook WHERE id = ${id}
-`);
-  if (!existing.length) {
-    await db.query(escape`
-      INSERT INTO
-      guestbook (id, avatar, login, comment, updated)
-      VALUES (${id}, ${avatar_url}, ${login}, null, ${Date.now()})
-    `);
-  }
   res.writeHead(301, {
     Location: `/?provider=github&token=${access_token}&login=${login}&id=${id}`
   });
