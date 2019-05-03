@@ -102,7 +102,7 @@ function HomePage({
         <>
           <h3>
             Hello, {login},{' '}
-            {!!existing
+            {existing && existing.comment
               ? 'want to update your signature?'
               : 'want to sign the guestbook?'}
           </h3>
@@ -116,31 +116,34 @@ function HomePage({
         <>
           <h2>Signatures</h2>
           <ul>
-            {guestbook.map(g => (
-              <li>
-                <Link href={`https://github.com/${g.login}`}>
-                  <a className="comment">
-                    <img src={g.avatar} />
-                  </a>
-                </Link>
-                <div className="description">
-                  <div className="row">
-                    <h4>{g.login}</h4>
-                    <div className="time">
-                      {new Date(g.updated).toTimeString()}
+            {guestbook.map(
+              g =>
+                g.comment && (
+                  <li>
+                    <Link href={`https://github.com/${g.login}`}>
+                      <a className="comment">
+                        <img src={g.avatar} />
+                      </a>
+                    </Link>
+                    <div className="description">
+                      <div className="row">
+                        <h4>{g.login}</h4>
+                        <div className="time">
+                          {new Date(g.updated).toTimeString()}
+                        </div>
+                      </div>
+                      <div className="row">
+                        <p>{g.comment}</p>
+                        {id == g.id && (
+                          <button className="delete" onClick={handleDelete}>
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="row">
-                    <p>{g.comment}</p>
-                    {id == g.id && (
-                      <button className="delete" onClick={handleDelete}>
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </li>
-            ))}
+                  </li>
+                )
+            )}
           </ul>
         </>
       )}
