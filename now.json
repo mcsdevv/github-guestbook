@@ -2,6 +2,7 @@
   "version": 2,
   "name": "github-guestbook",
   "alias": "github-guestbook.now.sh",
+  "regions": ["iad1"],
   "builds": [
     { "src": "api/**/*.js", "use": "@now/node" },
     { "src": "next.config.js", "use": "@now/next" }
