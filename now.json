@@ -19,6 +19,13 @@
     {
       "src": "/api/guestbook/delete",
       "dest": "api/guestbook/delete.js"
+    },
+    {
+      "src": "/api/guestbook/",
+      "dest": "api/guestbook/",
+      "headers": {
+        "cache-control": "s-maxage=31536000 maxage=0, stale-while-revalidate"
+      }
     }
   ],
   "env": {

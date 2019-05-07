@@ -20,5 +20,6 @@ module.exports = async (req, res) => {
   `);
   const { entries } = count[0];
   const pageCount = Math.ceil(entries / limit);
+  res.setHeader('cache-control', 's-maxage=1 maxage=0, stale-while-revalidate');
   res.end(JSON.stringify({ guestbook, page, pageCount }));
 };
