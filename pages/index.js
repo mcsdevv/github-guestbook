@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import fetch from 'isomorphic-unfetch';
 import { parseCookies, setCookie, destroyCookie } from 'nookies';
 import Head from 'next/head';
@@ -55,10 +56,14 @@ function HomePage({
   pageCount,
   token
 }) {
+  const [signatures, setSignatures] = useState([]);
+  useEffect(() => {
+    setSignatures([...guestbook]);
+  });
   const handleSubmit = async e => {
     e.preventDefault();
     const comment = e.target.comment.value;
-    await fetch(`${baseURL}/api/guestbook/sign`, {
+    const res = await fetch(`${baseURL}/api/guestbook/sign`, {
       method: 'PATCH',
       body: JSON.stringify({
         comment,
@@ -66,7 +71,19 @@ function HomePage({
         token
       })
     });
-    window.location = '/';
+    if (res.status === 200) {
+      if (existing) {
+        const updatedSignatures = signatures.map(s => {
+          if (s.id === existing.id) s.comment = comment;
+          return s;
+        });
+        setSignatures([...updatedSignatures]);
+      } else {
+        const updatedSignatures = [res.json(), ...signatures.slice(1, 5)];
+        setSignatures([...updatedSignatures]);
+      }
+    }
+    // window.location = '/';
   };
   const handleDelete = async () => {
     await fetch(`${baseURL}/api/guestbook/delete?id=${id}`, {
@@ -112,14 +129,14 @@ function HomePage({
           </form>
         </>
       )}
-      {guestbook.length >= 1 && (
+      {signatures.length >= 1 && (
         <>
           <h2>Signatures</h2>
           <ul>
-            {guestbook.map(
+            {signatures.map(
               g =>
                 g.comment && (
-                  <li>
+                  <li key={g.login}>
                     <Link href={`https://github.com/${g.login}`}>
                       <a className="comment">
                         <img src={g.avatar} />

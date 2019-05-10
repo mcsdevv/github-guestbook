@@ -5,6 +5,7 @@ const { json } = require('micro');
 
 module.exports = async (req, res) => {
   const { comment, id, token } = await json(req);
+  const updated = Date.now();
   const existing = await db.query(escape`
   SELECT * FROM guestbook WHERE id = ${id}
   `);
@@ -20,15 +21,18 @@ module.exports = async (req, res) => {
     await db.query(escape`
     INSERT INTO
     guestbook (id, avatar, login, comment, updated)
-    VALUES (${id}, ${avatar_url}, ${login}, ${comment}, ${Date.now()})
+    VALUES (${id}, ${avatar_url}, ${login}, ${comment}, ${updated})
   `);
+    res.end(
+      JSON.stringify({ id, avatar: avatar_url, login, comment, updated })
+    );
   } else {
     const sign = await db.query(
       escape`UPDATE guestbook
-       SET comment = ${comment}, updated = ${Date.now()}
+       SET comment = ${comment}, updated = ${updated}
        WHERE id = ${id}`
     );
     console.log('SIGN', sign);
+    res.end();
   }
-  res.end();
 };
