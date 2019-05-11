@@ -33,6 +33,10 @@ module.exports = async (req, res) => {
        WHERE id = ${id}`
     );
     console.log('SIGN', sign);
+    res.setHeader(
+      'cache-control',
+      's-maxage=1 maxage=0, stale-while-revalidate'
+    );
     res.end();
   }
 };

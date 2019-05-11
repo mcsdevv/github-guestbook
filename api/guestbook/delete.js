@@ -8,5 +8,15 @@ module.exports = async (req, res) => {
     escape`DELETE FROM guestbook
          WHERE id = ${query.id}`
   );
-  res.end();
+  let page = parseInt(query.page) || 1;
+  const limit = parseInt(query.limit) || 5;
+  if (page < 1) page = 1;
+  const guestbook = await db.query(escape`
+      SELECT *
+      FROM guestbook
+      ORDER BY updated DESC
+      LIMIT ${(page - 1) * limit}, ${limit}
+    `);
+  res.setHeader('cache-control', 's-maxage=1 maxage=0, stale-while-revalidate');
+  res.end(JSON.stringify({ guestbook }));
 };

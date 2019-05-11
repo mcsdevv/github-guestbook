@@ -62,7 +62,8 @@ function HomePage({
   });
   const handleSubmit = async e => {
     e.preventDefault();
-    const comment = e.target.comment.value;
+    let comment = e.target.comment.value;
+    e.target.comment.value = '';
     const res = await fetch(`${baseURL}/api/guestbook/sign`, {
       method: 'PATCH',
       body: JSON.stringify({
@@ -71,6 +72,7 @@ function HomePage({
         token
       })
     });
+    const newSignature = await res.json();
     if (res.status === 200) {
       if (existing) {
         const updatedSignatures = signatures.map(s => {
@@ -79,17 +81,20 @@ function HomePage({
         });
         setSignatures([...updatedSignatures]);
       } else {
-        const updatedSignatures = [res.json(), ...signatures.slice(1, 5)];
+        const updatedSignatures = [newSignature, ...signatures.slice(1, 5)];
         setSignatures([...updatedSignatures]);
       }
     }
-    // window.location = '/';
   };
   const handleDelete = async () => {
-    await fetch(`${baseURL}/api/guestbook/delete?id=${id}`, {
-      method: 'DELETE'
-    });
-    window.location = '/';
+    const res = await fetch(
+      `${baseURL}/api/guestbook/delete?id=${id}&page=${page}&limit=5`,
+      {
+        method: 'DELETE'
+      }
+    );
+    const data = await res.json();
+    setSignatures([...data.guestbook]);
   };
   return (
     <>
