@@ -23,6 +23,10 @@ module.exports = async (req, res) => {
     guestbook (id, avatar, login, comment, updated)
     VALUES (${id}, ${avatar_url}, ${login}, ${comment}, ${updated})
   `);
+    res.setHeader(
+      'cache-control',
+      's-maxage=1 maxage=0, stale-while-revalidate'
+    );
     res.end(
       JSON.stringify({ id, avatar: avatar_url, login, comment, updated })
     );

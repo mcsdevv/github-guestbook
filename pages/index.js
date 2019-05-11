@@ -15,14 +15,11 @@ HomePage.getInitialProps = async ctx => {
     `${baseURL}/api/guestbook?page=${query.page || 1}&limit=${query.limit || 5}`
   );
   const { guestbook, page, pageCount } = await guestbookRequest.json();
-  const existing = guestbook.find(
-    s => s.id === parseInt(query.id || parseCookies(ctx).id)
-  );
   if (query.token === 'logout') {
     destroyCookie(ctx, 'token');
     destroyCookie(ctx, 'id');
     destroyCookie(ctx, 'name');
-    return { baseURL, existing, guestbook };
+    return { baseURL, guestbook };
   }
   if (query.id) {
     await setCookie(ctx, 'id', query.id, {
@@ -40,26 +37,24 @@ HomePage.getInitialProps = async ctx => {
       });
     }
     const { id, login, token } = query;
-    return { baseURL, existing, guestbook, id, login, page, pageCount, token };
+    return { baseURL, guestbook, id, login, page, pageCount, token };
   }
   const { id, login, token } = await parseCookies(ctx);
-  return { baseURL, existing, guestbook, id, login, page, pageCount, token };
+  return { baseURL, guestbook, id, login, page, pageCount, token };
 };
 
-function HomePage({
-  baseURL,
-  existing,
-  guestbook,
-  id,
-  login,
-  page,
-  pageCount,
-  token
-}) {
+function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
+  console.log('GUESTBOOK', guestbook);
   const [signatures, setSignatures] = useState([]);
   useEffect(() => {
     setSignatures([...guestbook]);
-  });
+  }, [guestbook]);
+
+  // console.log('render');
+  const existing = signatures.find(s => s.id == id);
+  // console.log(signatures);
+  // console.log(id);
+  // console.log(existing);
   const handleSubmit = async e => {
     e.preventDefault();
     let comment = e.target.comment.value;
@@ -72,21 +67,26 @@ function HomePage({
         token
       })
     });
-    const newSignature = await res.json();
     if (res.status === 200) {
       if (existing) {
+        console.log('A');
         const updatedSignatures = signatures.map(s => {
           if (s.id === existing.id) s.comment = comment;
           return s;
         });
         setSignatures([...updatedSignatures]);
       } else {
-        const updatedSignatures = [newSignature, ...signatures.slice(1, 5)];
+        console.log('B');
+        // console.log('OG', signatures);
+        const newSignature = await res.json();
+        const updatedSignatures = [newSignature, ...signatures.slice(0, 4)];
+        // console.log('UPDATE', updatedSignatures);
         setSignatures([...updatedSignatures]);
       }
     }
   };
   const handleDelete = async () => {
+    console.log('C');
     const res = await fetch(
       `${baseURL}/api/guestbook/delete?id=${id}&page=${page}&limit=5`,
       {
