@@ -44,17 +44,11 @@ HomePage.getInitialProps = async ctx => {
 };
 
 function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
-  console.log('GUESTBOOK', guestbook);
   const [signatures, setSignatures] = useState([]);
   useEffect(() => {
     setSignatures([...guestbook]);
   }, [guestbook]);
-
-  // console.log('render');
   const existing = signatures.find(s => s.id == id);
-  // console.log(signatures);
-  // console.log(id);
-  // console.log(existing);
   const handleSubmit = async e => {
     e.preventDefault();
     let comment = e.target.comment.value;
@@ -69,24 +63,19 @@ function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
     });
     if (res.status === 200) {
       if (existing) {
-        console.log('A');
         const updatedSignatures = signatures.map(s => {
           if (s.id === existing.id) s.comment = comment;
           return s;
         });
         setSignatures([...updatedSignatures]);
       } else {
-        console.log('B');
-        // console.log('OG', signatures);
         const newSignature = await res.json();
         const updatedSignatures = [newSignature, ...signatures.slice(0, 4)];
-        // console.log('UPDATE', updatedSignatures);
         setSignatures([...updatedSignatures]);
       }
     }
   };
   const handleDelete = async () => {
-    console.log('C');
     const res = await fetch(
       `${baseURL}/api/guestbook/delete?id=${id}&page=${page}&limit=5`,
       {
