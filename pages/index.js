@@ -11,34 +11,35 @@ HomePage.getInitialProps = async ctx => {
     : location.protocol;
   const host = req ? req.headers['x-forwarded-host'] : location.host;
   const baseURL = `${protocol}//${host}`;
-  const guestbookReq = await fetch(
-    `${baseURL}/api/guestbook?page=${query.page || 1}&limit=${query.limit || 5}`
+  const guestbookRequest = await fetch(
+    `${baseURL}/api/guestbook?page=${query.page}&limit=${query.limit}`
   );
-  const { guestbook, page, pageCount } = await guestbookReq.json();
+  const { guestbook, page, pageCount } = await guestbookRequest.json();
   if (query.token === 'logout') {
     destroyCookie(ctx, 'token');
     destroyCookie(ctx, 'id');
     destroyCookie(ctx, 'name');
-    return { baseURL, guestbook };
+    return { guestbook };
   }
-  const cookieSettings = {
+  let props = { guestbook, page, pageCount };
+  const options = {
     maxAge: 30 * 24 * 60 * 60,
     path: '/'
   };
   if (query.id) {
-    await setCookie(ctx, 'id', query.id, cookieSettings);
-    await setCookie(ctx, 'login', query.login, cookieSettings);
-    if (query.token && query.token !== 'logout') {
-      await setCookie(ctx, 'token', cookieSettings);
-    }
+    await setCookie(ctx, 'id', query.id, options);
+    await setCookie(ctx, 'login', query.login, options);
+    await setCookie(ctx, 'token', query.token, options);
     const { id, login, token } = query;
-    return { baseURL, guestbook, id, login, page, pageCount, token };
+    props = { ...props, id, login, token };
+  } else {
+    const { id, login, token } = await parseCookies(ctx);
+    props = { ...props, id, login, token };
   }
-  const { id, login, token } = await parseCookies(ctx);
-  return { baseURL, guestbook, id, login, page, pageCount, token };
+  return { ...props };
 };
 
-function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
+function HomePage({ guestbook, id, login, page, pageCount, token }) {
   const [signatures, setSignatures] = useState([]);
   useEffect(() => {
     setSignatures([...guestbook]);
@@ -48,7 +49,7 @@ function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
     e.preventDefault();
     let comment = e.target.comment.value;
     e.target.comment.value = '';
-    const res = await fetch(`${baseURL}/api/guestbook/sign`, {
+    const res = await fetch(`/api/guestbook/sign`, {
       method: 'PATCH',
       body: JSON.stringify({
         comment,
@@ -72,7 +73,7 @@ function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
   };
   const handleDelete = async () => {
     const res = await fetch(
-      `${baseURL}/api/guestbook/delete?id=${id}&page=${page}&limit=5`,
+      `/api/guestbook/delete?id=${id}&page=${page}&limit=5`,
       {
         method: 'DELETE'
       }
@@ -92,11 +93,7 @@ function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
       </Head>
       <header>
         <h1>GitHub Guestbook</h1>
-        <Link
-          href={
-            !token ? `${baseURL}/api/auth?provider=github` : `/?token=logout`
-          }
-        >
+        <Link href={!token ? `/api/auth?provider=github` : `/?token=logout`}>
           <a>
             <button>
               {token !== undefined ? 'Logout' : 'Login With GitHub'}
@@ -113,7 +110,7 @@ function HomePage({ baseURL, guestbook, id, login, page, pageCount, token }) {
               : 'want to sign the guestbook?'}
           </h3>
           <form onSubmit={handleSubmit}>
-            <input id="comment" name="comment" />
+            <input id="comment" name="comment" required />
             <button type="submit">Sign</button>
           </form>
         </>
