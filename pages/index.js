@@ -78,8 +78,10 @@ function HomePage({ guestbook, id, login, page, pageCount, token }) {
         method: 'DELETE'
       }
     );
-    const data = await res.json();
-    setSignatures([...data.guestbook]);
+    if (res.status === 200) {
+      const data = await res.json();
+      setSignatures([...data.guestbook]);
+    }
   };
   return (
     <>
@@ -93,7 +95,10 @@ function HomePage({ guestbook, id, login, page, pageCount, token }) {
       </Head>
       <header>
         <h1>GitHub Guestbook</h1>
-        <Link href={!token ? `/api/auth?provider=github` : `/?token=logout`}>
+        <Link
+          href={!token ? `/api/auth?provider=github` : `/?token=logout`}
+          as={!token ? '' : '/'}
+        >
           <a>
             <button>
               {token !== undefined ? 'Logout' : 'Login With GitHub'}
