@@ -11,30 +11,25 @@ HomePage.getInitialProps = async ctx => {
     : location.protocol;
   const host = req ? req.headers['x-forwarded-host'] : location.host;
   const baseURL = `${protocol}//${host}`;
-  const guestbookRequest = await fetch(
+  const guestbookReq = await fetch(
     `${baseURL}/api/guestbook?page=${query.page || 1}&limit=${query.limit || 5}`
   );
-  const { guestbook, page, pageCount } = await guestbookRequest.json();
+  const { guestbook, page, pageCount } = await guestbookReq.json();
   if (query.token === 'logout') {
     destroyCookie(ctx, 'token');
     destroyCookie(ctx, 'id');
     destroyCookie(ctx, 'name');
     return { baseURL, guestbook };
   }
+  const cookieSettings = {
+    maxAge: 30 * 24 * 60 * 60,
+    path: '/'
+  };
   if (query.id) {
-    await setCookie(ctx, 'id', query.id, {
-      maxAge: 30 * 24 * 60 * 60,
-      path: '/'
-    });
-    await setCookie(ctx, 'login', query.login, {
-      maxAge: 30 * 24 * 60 * 60,
-      path: '/'
-    });
+    await setCookie(ctx, 'id', query.id, cookieSettings);
+    await setCookie(ctx, 'login', query.login, cookieSettings);
     if (query.token && query.token !== 'logout') {
-      await setCookie(ctx, 'token', query.token, {
-        maxAge: 30 * 24 * 60 * 60,
-        path: '/'
-      });
+      await setCookie(ctx, 'token', cookieSettings);
     }
     const { id, login, token } = query;
     return { baseURL, guestbook, id, login, page, pageCount, token };
