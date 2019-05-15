@@ -15,13 +15,13 @@ HomePage.getInitialProps = async ctx => {
     `${baseURL}/api/guestbook?page=${query.page}&limit=${query.limit}`
   );
   const { guestbook, page, pageCount } = await guestbookRequest.json();
+  let props = { guestbook, page, pageCount };
   if (query.token === 'logout') {
     destroyCookie(ctx, 'token');
     destroyCookie(ctx, 'id');
     destroyCookie(ctx, 'name');
-    return { guestbook };
+    return { ...props };
   }
-  let props = { guestbook, page, pageCount };
   const options = {
     maxAge: 30 * 24 * 60 * 60,
     path: '/'
@@ -95,10 +95,7 @@ function HomePage({ guestbook, id, login, page, pageCount, token }) {
       </Head>
       <header>
         <h1>GitHub Guestbook</h1>
-        <Link
-          href={!token ? `/api/auth?provider=github` : `/?token=logout`}
-          as={!token ? '' : '/'}
-        >
+        <Link href={!token ? `/api/auth?provider=github` : `/?token=logout`}>
           <a>
             <button>
               {token !== undefined ? 'Logout' : 'Login With GitHub'}

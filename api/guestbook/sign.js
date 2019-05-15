@@ -9,6 +9,7 @@ module.exports = async (req, res) => {
   const existing = await db.query(escape`
   SELECT * FROM guestbook WHERE id = ${id}
   `);
+  res.setHeader('cache-control', 's-maxage=1 maxage=0, stale-while-revalidate');
   if (!existing.length) {
     const { avatar_url, login } = await request({
       uri: 'https://api.github.com/user',
@@ -19,28 +20,19 @@ module.exports = async (req, res) => {
       json: true
     });
     await db.query(escape`
-    INSERT INTO
-    guestbook (id, avatar, login, comment, updated)
-    VALUES (${id}, ${avatar_url}, ${login}, ${comment}, ${updated})
-  `);
-    res.setHeader(
-      'cache-control',
-      's-maxage=1 maxage=0, stale-while-revalidate'
-    );
+      INSERT INTO
+      guestbook (id, avatar, login, comment, updated)
+      VALUES (${id}, ${avatar_url}, ${login}, ${comment}, ${updated})
+    `);
     res.end(
       JSON.stringify({ id, avatar: avatar_url, login, comment, updated })
     );
   } else {
-    const sign = await db.query(
-      escape`UPDATE guestbook
-       SET comment = ${comment}, updated = ${updated}
-       WHERE id = ${id}`
-    );
-    console.log('SIGN', sign);
-    res.setHeader(
-      'cache-control',
-      's-maxage=1 maxage=0, stale-while-revalidate'
-    );
+    await db.query(escape`
+      UPDATE guestbook
+      SET comment = ${comment}, updated = ${updated}
+      WHERE id = ${id}
+    `);
     res.end();
   }
 };
