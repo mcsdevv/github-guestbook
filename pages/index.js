@@ -40,7 +40,7 @@ HomePage.getInitialProps = async ctx => {
     const { id, login, token } = await parseCookies(ctx);
     props = { ...props, id, login, token };
   }
-  return { ...props };
+  return props;
 };
 
 function HomePage({ guestbook, id, login, page, pageCount, token }) {
